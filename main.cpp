@@ -7,9 +7,10 @@
 #include "Spline.hpp"
 
 #include <chrono>
+#include <iomanip> 
 
-const int splineSteps = 32/4;
-const int profileDetail = 16/4;
+const int splineSteps = 32/2;
+const int profileDetail = 16/2;
 
 const float ribbonWidth = 2.0f;
 const float ribbonHeight = 0.125f;
@@ -261,8 +262,8 @@ void triangulateQuad( vector<int> &triangles,   vector<v3> &vertices,  vector<v3
     triangles.push_back(idp1+2);
 
     triangles.push_back(idp1);
+    triangles.push_back(idp1+2);
     triangles.push_back(idp1+3);
-    triangles.push_back(idp1+4);
 }
 
 void createSegmentMesh(Mesh &mesh, int i, int n, PeptidePlane *pp1, PeptidePlane *pp2, PeptidePlane *pp3, PeptidePlane *pp4) {
@@ -393,7 +394,7 @@ void writeToObj(string fileName, vector<Mesh> meshes){
     ofstream myfile;
     cerr << "Writting to "<<fileName<<endl;
     myfile.open (fileName);
-    
+
     for(int i=0;i<meshes.size();i++){
         for(int j=0;j<meshes[i].vertices.size();j++){
             myfile << "v "<<meshes[i].vertices[j].x<<" "<<meshes[i].vertices[j].y<<" "<<meshes[i].vertices[j].z<<endl;
