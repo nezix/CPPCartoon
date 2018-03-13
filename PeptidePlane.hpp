@@ -41,11 +41,11 @@ PeptidePlane NewPeptidePlane(residue *r1, residue *r2, residue *r3){
     return newPP;
 }
 
-void Transition(PeptidePlane *pp, int *type1, int *type2) {
+void Transition(PeptidePlane *pp, char *type1, char *type2) {
 
-    int t1 = pp->Residue1->ss;
-    int t2 = pp->Residue2->ss;
-    int t3 = pp->Residue3->ss;
+    char t1 = pp->Residue1->ss;
+    char t2 = pp->Residue2->ss;
+    char t3 = pp->Residue3->ss;
     *type1 = t2;
     *type2 = t2;
     if (t2 > t1 && t2 == t3){

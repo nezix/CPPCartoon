@@ -1,12 +1,15 @@
 
 #include <math.h>
+#include <fstream>
+
 #include "cpdb/cpdb.h"
 #include "PeptidePlane.hpp"
 #include "Spline.hpp"
 
+#include <chrono>
 
-const int splineSteps = 32;
-const int profileDetail = 16;
+const int splineSteps = 32/4;
+const int profileDetail = 16/4;
 
 const float ribbonWidth = 2.0f;
 const float ribbonHeight = 0.125f;
@@ -151,9 +154,9 @@ v3 *translateProfile(v3 *p, float dx, float dy, int lenP) {
     return result;
 }
 
-void segmentProfiles(PeptidePlane *pp1, PeptidePlane *pp2, int n, v3 **p1, v3 **p2){
-    int type0 = pp1->Residue1->ss;
-    int type1, type2;
+void segmentProfiles(PeptidePlane *pp1, PeptidePlane *pp2, int n, v3 **p1, v3 **p2, int *lenProf1, int *lenProf2){
+    char type0 = pp1->Residue1->ss;
+    char type1, type2;
     Transition(pp1, &type1, &type2);
 
 
@@ -200,6 +203,8 @@ void segmentProfiles(PeptidePlane *pp1, PeptidePlane *pp2, int n, v3 **p1, v3 **
     if(type1 == STRAND && type2 != STRAND) {
        *p2 = rectangleProfile(n, 0, arrowHeight);
     }
+    *lenProf1 = n;
+    *lenProf2 = n;
     
 }
 
@@ -213,7 +218,7 @@ void segmentColors(PeptidePlane *pp, v3 *c1, v3 *c2) {
     // c1 = fauxgl.MakeColor(Viridis.Color(t1))
     // c2 = fauxgl.MakeColor(Viridis.Color(t2))
     // return
-    int type1, type2;
+    char type1, type2;
     Transition(pp, &type1, &type2);
     switch (type1) {
         case HELIX:
@@ -236,7 +241,7 @@ void segmentColors(PeptidePlane *pp, v3 *c1, v3 *c2) {
     }
 }
 
-void triangulateQuad(vector<int> triangles, vector<v3> vertices, vector<v3> colors,
+void triangulateQuad( vector<int> &triangles,   vector<v3> &vertices,  vector<v3> &colors,
                      v3 p1, v3 p2, v3 p3, v3 p4, v3 c1, v3 c2, v3 c3, v3 c4){
     
     vertices.push_back(p1);
@@ -260,16 +265,17 @@ void triangulateQuad(vector<int> triangles, vector<v3> vertices, vector<v3> colo
     triangles.push_back(idp1+4);
 }
 
-void createSegmentMesh(Mesh *mesh, int i, int n, PeptidePlane *pp1, PeptidePlane *pp2, PeptidePlane *pp3, PeptidePlane *pp4) {
+void createSegmentMesh(Mesh &mesh, int i, int n, PeptidePlane *pp1, PeptidePlane *pp2, PeptidePlane *pp3, PeptidePlane *pp4) {
 
-    Mesh res;
-    int type0 = pp2->Residue1->ss;
-    int type1, type2;
+    char type0 = pp2->Residue1->ss;
+    char type1, type2;
     Transition(pp2, &type1, &type2);
     v3 c1, c2;
     segmentColors(pp2, &c1, &c2);
     v3 *profile1, *profile2;
-    segmentProfiles(pp2, pp3, profileDetail, &profile1, &profile2);
+    int lenProf1;
+    int lenProf2;
+    segmentProfiles(pp2, pp3, profileDetail, &profile1, &profile2, &lenProf1, &lenProf2);
 
     auto easeFunc = &Linear;
     if (type1 == STRAND && type2 != STRAND) {
@@ -285,14 +291,13 @@ void createSegmentMesh(Mesh *mesh, int i, int n, PeptidePlane *pp1, PeptidePlane
     // }
     if (i == 0) {
         profile1 = ellipseProfile(profileDetail, 0.0f, 0.0f);
+        lenProf1 = profileDetail;
         easeFunc = OutCirc;
     } else if (i == n-1) {
         profile2 = ellipseProfile(profileDetail, 0.0f, 0.0f);
+        lenProf2 = profileDetail;
         easeFunc = InCirc;
     }
-
-    int lenProf1 = sizeof(profile1)/sizeof(*profile1);
-    int lenProf2 = sizeof(profile2)/sizeof(*profile2);
 
     v3 **splines1 = new v3*[lenProf1];
     v3 **splines2 = new v3*[lenProf2];
@@ -302,9 +307,9 @@ void createSegmentMesh(Mesh *mesh, int i, int n, PeptidePlane *pp1, PeptidePlane
         splines1[i] = splineForPlanes(pp1, pp2, pp3, pp4, splineSteps, p1.x, p1.y);
         splines2[i] = splineForPlanes(pp1, pp2, pp3, pp4, splineSteps, p2.x, p2.y);
     }
-    vector<int> triangles = mesh->triangles;
-    vector<v3> vertices = mesh->vertices;
-    vector<v3> colors = mesh->colors;
+    vector<int> triangles ;//= mesh->triangles;
+    vector<v3> vertices ;//= mesh->vertices;
+    vector<v3> colors ;//= mesh->colors;
 
     // var lines []*fauxgl.Line
 
@@ -316,9 +321,10 @@ void createSegmentMesh(Mesh *mesh, int i, int n, PeptidePlane *pp1, PeptidePlane
             v3 p10 = splines1[profileDetail/4][i];
             v3 p11 = splines1[2*profileDetail/4][i];
             v3 p01 = splines1[3*profileDetail/4][i];
-            triangulateQuad(triangles, vertices, colors, p00, p01, p11, p10, c1, c1, c1, c1);
+            triangulateQuad(mesh.triangles, mesh.vertices, mesh.colors, p00, p01, p11, p10, c1, c1, c1, c1);
         }
-        for(int j = 0; j < profileDetail; j++){
+        for(int j = 0; j < profileDetail ; j++){
+        // for(int j = 0; j < profileDetail && j < lenProf1 && j < lenProf2; j++){
             v3 p100 = splines1[j][i];
             v3 p101 = splines1[j][i+1];
             v3 p110 = splines1[(j+1)%profileDetail][i];
@@ -335,15 +341,14 @@ void createSegmentMesh(Mesh *mesh, int i, int n, PeptidePlane *pp1, PeptidePlane
             v3 c01 = lerp(c1, c2, t1);
             v3 c10 = lerp(c1, c2, t0);
             v3 c11 = lerp(c1, c2, t1);
-            triangulateQuad(triangles, vertices, colors, p10, p11, p01, p00, c10, c11, c01, c00);
+            triangulateQuad(mesh.triangles, mesh.vertices, mesh.colors, p10, p11, p01, p00, c10, c11, c01, c00);
+
         }
     }
-    // return fauxgl.NewMesh(triangles, lines)
-    // res.triangles = triangles;
-    // res.colors = colors;
-    // res.vertices = vertices;
+    // mesh.triangles = triangles;
+    // mesh.colors = colors;
+    // mesh.vertices = vertices;
 
-    // return res;
 }
 
 
@@ -379,11 +384,32 @@ Mesh createChainMesh(chain *C) {
         PeptidePlane pp2 = planes[i+1];
         PeptidePlane pp3 = planes[i+2];
         PeptidePlane pp4 = planes[i+3];
-        createSegmentMesh(&mesh, i, n, &pp1, &pp2, &pp3, &pp4);
+        createSegmentMesh(mesh, i, n, &pp1, &pp2, &pp3, &pp4);
     }
     return mesh;
 }
 
+void writeToObj(string fileName, vector<Mesh> meshes){
+    ofstream myfile;
+    cerr << "Writting to "<<fileName<<endl;
+    myfile.open (fileName);
+    
+    for(int i=0;i<meshes.size();i++){
+        for(int j=0;j<meshes[i].vertices.size();j++){
+            myfile << "v "<<meshes[i].vertices[j].x<<" "<<meshes[i].vertices[j].y<<" "<<meshes[i].vertices[j].z<<endl;
+        }
+    }
+    int cpt=1;
+    for(int i=0;i<meshes.size();i++){
+        for(int j=0;j<meshes[i].triangles.size();j+=3){
+            myfile << "f "<<cpt+meshes[i].triangles[j]<<" "<<cpt+meshes[i].triangles[j+1]<<" "<<cpt+meshes[i].triangles[j+2]<<endl;
+        }
+        cpt+=meshes[i].vertices.size();
+    }
+
+    myfile.close();
+    cerr << "Wrote "<<meshes.size()<<" meshes to "<<fileName<<endl;
+}
 
 int main(int argc, char const *argv[]) {
 
@@ -397,13 +423,25 @@ int main(int argc, char const *argv[]) {
 
     parsePDB((char *)argv[1], P, (char *)"");
 
+    auto start = std::chrono::high_resolution_clock::now();
+    vector<Mesh> meshes;
     chain *C = NULL;
     for (int chainId = 0; chainId < P->size; chainId++) {
         C = &P->chains[chainId];
+        // for(int r=0;r<C->residues->size;r++){
+        //     // C->residues[r].ss = HELIX;
+        //     bool ok = C->residues[r].ss==HELIX;
+        //     cerr << "'"<<ok<<"'"<<endl;
+        // }
         Mesh m = createChainMesh(C);
+        meshes.push_back(m);
     }
+    auto stop = std::chrono::high_resolution_clock::now();
 
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( stop - start ).count();
 
+    cerr << duration<<endl;
+    writeToObj("output.obj",meshes);
 
 
     return 0;

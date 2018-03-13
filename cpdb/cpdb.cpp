@@ -119,6 +119,7 @@ int parsePDB (char *pdbFilePath, pdb *P , char *options) {
                 myRes->__capacity = 0;
                 myRes->next = NULL;
                 myRes->prev = currentResidue;
+                myRes->ss = COIL;
 
                 appendResiduetoChain(currentChain, *myRes);
 
