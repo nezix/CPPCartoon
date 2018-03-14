@@ -5,7 +5,7 @@ const float powersOfTen[] = {1e0f, 1e1f, 1e2f, 1e3f, 1e4f, 1e5f, 1e6f, 1e7f, 1e8
 
 static inline float RoundPlaces(float a, int p){
     float s = powersOfTen[p];
-    return round(a*s) / s;
+    return roundf(a*s) / s;
 }
 v3 RoundPlaces(v3 v, int p){
     return v3(RoundPlaces(v.x, p), RoundPlaces(v.y, p), RoundPlaces(v.z, p));

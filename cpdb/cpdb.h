@@ -88,4 +88,13 @@ struct pdb {
     char name[32];
 };
 
+struct SS
+{
+    char type;
+    int start;
+    int stop;
+    char chain[2];
+
+};
+
 #endif /* cpdb_h */

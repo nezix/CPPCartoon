@@ -8,6 +8,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <vector>
 #include "cpdb.h"
 
 
@@ -24,8 +25,11 @@ void getAlternativeLoc (const char *line, char *altLoc);
 void getChainId (const char *line, char *chainId);
 void getOccupancy (const char *line, float *occupancy);
 void getTempFactor (const char *line, float *tempFactor);
+void getHelix(const char *line, int *start, int *stop, char *chain);
+void getSheet(const char *line, int *start, int *stop, char *chain);
 void updateResiduePointers (chain *C);
 void updateAtomPointers (residue *R);
+void fillSS(pdb *P, std::vector<SS> secStructs);
 
 pdb* initPDB() {
     return (pdb *)calloc(1, sizeof(pdb));
@@ -45,6 +49,14 @@ int parsePDB (char *pdbFilePath, pdb *P , char *options) {
     int resIdx = 0;
     int atomIdx = 0;
     v3 coor;
+    int helixStart = 0;
+    int helixStop = 0;
+    char helixChain[2];
+    int sheetStart = 0;
+    int sheetStop = 0;
+    char sheetChain[2];
+    std::vector<SS> secStructs;
+
     residue *currentResidue = NULL;
     chain *currentChain = NULL;
     atom *currentAtom = NULL;
@@ -76,7 +88,7 @@ int parsePDB (char *pdbFilePath, pdb *P , char *options) {
     length = 0;
     
     if (pdbFile == NULL) {
-        perror("pdb file can not read");
+        perror("pdb file cannnot be read");
         exit (2);
     }
     while (fgets(line, sizeof(line), pdbFile)) {
@@ -148,13 +160,58 @@ int parsePDB (char *pdbFilePath, pdb *P , char *options) {
             }
             
         }
+        if (!strncmp(line, "HELIX ", 6)) {
+            getHelix(line, &helixStart, &helixStop, helixChain);
+            SS curSS; curSS.start = helixStart; curSS.stop = helixStop; strncpy(curSS.chain, helixChain, 2);
+            curSS.type = HELIX;
+            secStructs.push_back(curSS);
+        }
+        if (!strncmp(line, "SHEET ", 6)) {
+            getSheet(line, &sheetStart, &sheetStop, sheetChain);
+            SS curSS; curSS.start = sheetStart; curSS.stop = sheetStop; strncpy(curSS.chain, helixChain, 2);
+            curSS.type = STRAND;
+            secStructs.push_back(curSS);
+        }
         //else if (!strncmp(line, "ENDMDL", 6) || !strncmp(line, "TER   ", 6) || !strncmp(line, "END", 3)) {
         else if (!strncmp(line, "ENDMDL", 6)  || !strncmp(line, "END", 3)) {
             break;
         }
     }
     fclose(pdbFile);
+
+    fillSS(P, secStructs);
     return errorcode;
+}
+
+chain *getChain(pdb *P, char *c){
+    chain *C = NULL;
+
+    for(int i=0;i<P->size;i++){
+        C = &P->chains[i];
+        if(C->id == c[0]){
+            return C;
+        }
+    }
+    return NULL;
+}
+
+void fillSS(pdb *P, std::vector<SS> secStructs){
+    for(int s=0;s<secStructs.size();s++){
+        char *c = secStructs[s].chain;
+        int start = secStructs[s].start;
+        int stop = secStructs[s].stop;
+
+
+        chain *C = getChain(P, c);
+        if(C != NULL){
+            for(int r=0;r<C->size;r++){
+                residue *R = &C->residues[r];
+                if(R->id >= start && R->id <= stop){
+                    R->ss = secStructs[s].type;
+                }
+            }
+        }
+    }
 }
 
 int writePDB (const char *filename, const pdb *P) {
@@ -272,6 +329,27 @@ void getTempFactor (const char *line, float *tempFactor){
     char _temp[7]={0};
     extractStr(_temp, line, 60, 65);
     *tempFactor = atof(_temp);
+}
+
+void getHelix(const char *line, int *start, int *stop, char *chain){
+    if(strlen(line) >= 37){
+        extractStr(chain, line, 19, 20);
+        char _temp[5]={0};
+        extractStr(_temp, line, 21, 24);
+        *start = atoi(_temp);
+        extractStr(_temp, line, 33, 36);
+        *stop = atoi(_temp);
+    }
+}
+void getSheet(const char *line, int *start, int *stop, char *chain){
+    if(strlen(line) >= 38){
+        extractStr(chain, line, 21, 22);
+        char _temp[5]={0};
+        extractStr(_temp, line, 23, 26);
+        *start = atoi(_temp);
+        extractStr(_temp, line, 34, 37);
+        *stop = atoi(_temp);
+    }
 }
 
 void appendChaintoPdb (pdb *P, chain newChain) {
