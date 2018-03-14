@@ -63,10 +63,10 @@ v3 *spline(v3 vec1, v3 vec2, v3 vec3, v3 vec4, int n) {
 }
 
 v3 *splineForPlanes(PeptidePlane *p1,PeptidePlane * p2,PeptidePlane * p3,PeptidePlane * p4, int n, float u, float v) {
-    v3 g1 = p1->Position + (p1->Side*u + p1->Normal * v);
-    v3 g2 = p2->Position + (p2->Side*u + p2->Normal * v);
-    v3 g3 = p3->Position + (p3->Side*u + p3->Normal * v);
-    v3 g4 = p4->Position + (p4->Side*u + p4->Normal * v);
+    v3 g1 = p1->Position + p1->Side*u + p1->Normal * v;
+    v3 g2 = p2->Position + p2->Side*u + p2->Normal * v;
+    v3 g3 = p3->Position + p3->Side*u + p3->Normal * v;
+    v3 g4 = p4->Position + p4->Side*u + p4->Normal * v;
     return spline(g1, g2, g3, g4, n);
 }
 
@@ -82,7 +82,7 @@ float InOutQuad(float t) {
     return -0.5f * (t*(t-2) - 1);
 }
 float OutCirc(float t) {
-    t = -t;
+    t = t-1;
     return sqrtf(1 - (t * t));
 }
 float InCirc(float t) {

@@ -168,7 +168,7 @@ int parsePDB (char *pdbFilePath, pdb *P , char *options) {
         }
         if (!strncmp(line, "SHEET ", 6)) {
             getSheet(line, &sheetStart, &sheetStop, sheetChain);
-            SS curSS; curSS.start = sheetStart; curSS.stop = sheetStop; strncpy(curSS.chain, helixChain, 2);
+            SS curSS; curSS.start = sheetStart; curSS.stop = sheetStop; strncpy(curSS.chain, sheetChain, 2);
             curSS.type = STRAND;
             secStructs.push_back(curSS);
         }

@@ -54,8 +54,9 @@ int main(int argc, char const *argv[]) {
     for (int chainId = 0; chainId < P->size; chainId++) {
         C = &P->chains[chainId];
         // for(int r=0;r<C->size;r++){
-        //     if(C->residues[r].ss != COIL)
-        //         cerr << "'"<<(int)C->residues[r].ss<<"'"<<endl;
+        //     if(C->residues[r].ss == STRAND)
+        //         // cerr << "'"<<(int)C->residues[r].ss<<"'"<<endl;
+        //         cerr << "'"<<C->id<<" / "<<C->residues[r].id<<endl;
         // }
         Mesh m = createChainMesh(C);
         meshes.push_back(m);

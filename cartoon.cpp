@@ -100,7 +100,7 @@ v3 *roundedRectangleProfile(int n, float w, float h) {
                 float y = sinf(a) * r;
                 p = segments[s][0] + v3(x, y, 0.0f);
             }
-            else{
+            else if(s==3){
                 float a = 3*M_PI/2.0f + M_PI*t;
                 float x = cosf(a) * r;
                 float y = sinf(a) * r;
@@ -142,12 +142,12 @@ void segmentProfiles(PeptidePlane *pp1, PeptidePlane *pp2, int n, v3 *&p1, v3 *&
     switch (type1) {
         case HELIX:
             if (type0 == STRAND) {
-                p1 = roundedRectangleProfile(n, 0, 0);
+                p1 = roundedRectangleProfile(n, 0.0f, 0.0f);
             }
             else {
                 p1 = roundedRectangleProfile(n, ribbonWidth, ribbonHeight);
             }
-            translateProfile(p1, 0, offset1, n);
+            translateProfile(p1, 0.0f, offset1, n);
             break;
         case STRAND:
             if (type2 == STRAND) {
@@ -167,7 +167,7 @@ void segmentProfiles(PeptidePlane *pp1, PeptidePlane *pp2, int n, v3 *&p1, v3 *&
     switch(type2) {
         case HELIX:
             p2 = roundedRectangleProfile(n, ribbonWidth, ribbonHeight);
-            translateProfile(p2, 0, offset2, n);
+            translateProfile(p2, 0.0f, offset2, n);
             break;
         case STRAND:
             p2 = rectangleProfile(n, arrowWidth, arrowHeight);
@@ -177,7 +177,7 @@ void segmentProfiles(PeptidePlane *pp1, PeptidePlane *pp2, int n, v3 *&p1, v3 *&
             break;
     }
     if(type1 == STRAND && type2 != STRAND) {
-       p2 = rectangleProfile(n, 0, arrowHeight);
+       p2 = rectangleProfile(n, 0.0f, arrowHeight);
     }
 }
 
@@ -244,7 +244,7 @@ void triangulateQuad( vector<int> &triangles,   vector<v3> &vertices,  vector<v3
     triangles.push_back(idp1+3);
 }
 
-void createSegmentMesh(Mesh &mesh, int i, int n, PeptidePlane *pp1, PeptidePlane *pp2, PeptidePlane *pp3, PeptidePlane *pp4) {
+void createSegmentMesh(Mesh &mesh, int curi, int n, PeptidePlane *pp1, PeptidePlane *pp2, PeptidePlane *pp3, PeptidePlane *pp4) {
 
     char type0 = pp2->Residue1->ss;
     char type1, type2;
@@ -267,13 +267,11 @@ void createSegmentMesh(Mesh &mesh, int i, int n, PeptidePlane *pp1, PeptidePlane
     // if type1 != STRAND && type2 == STRAND {
     //  easeFunc = &ease.InOutSquare
     // }
-    if (i == 0) {
+    if (curi == 0) {
         profile1 = ellipseProfile(profileDetail, 0.0f, 0.0f);
-        lenProf1 = profileDetail;
         easeFunc = &OutCirc;
-    } else if (i == n-1) {
+    } else if (curi == n-1) {
         profile2 = ellipseProfile(profileDetail, 0.0f, 0.0f);
-        lenProf2 = profileDetail;
         easeFunc = &InCirc;
     }
 
@@ -285,15 +283,11 @@ void createSegmentMesh(Mesh &mesh, int i, int n, PeptidePlane *pp1, PeptidePlane
         splines1[i] = splineForPlanes(pp1, pp2, pp3, pp4, splineSteps, p1.x, p1.y);
         splines2[i] = splineForPlanes(pp1, pp2, pp3, pp4, splineSteps, p2.x, p2.y);
     }
-    // vector<int> triangles ;//= mesh->triangles;
-    // vector<v3> vertices ;//= mesh->vertices;
-    // vector<v3> colors ;//= mesh->colors;
 
-    // var lines []*fauxgl.Line
 
     for(int i = 0; i < splineSteps; i++){
-        float t0 = easeFunc((float)(i) / splineSteps);
-        float t1 = easeFunc((float)(i+1) / splineSteps);
+        float t0 = easeFunc(((float)i) / splineSteps);
+        float t1 = easeFunc(((float)i+1) / splineSteps);
         if(i == 0 && type1 == STRAND && type2 != STRAND) {
             v3 p00 = splines1[0][i];
             v3 p10 = splines1[profileDetail/4][i];
@@ -348,11 +342,11 @@ Mesh createChainMesh(chain *C) {
         }
     }
     for (int i = 0; i < nbPlanes; i++) {
-        PeptidePlane p = planes[i];
-        if(i > 0 && p.Side.dotProduct(previous) < 0.0f ){
-            Flip(&p);
+        PeptidePlane *p = &planes[i];
+        if(i > 0 && p->Side.dotProduct(previous) < 0.0f ){
+            Flip(p);
         }
-        previous = p.Side;
+        previous = p->Side;
     }
     
     int n = nbPlanes - 3;

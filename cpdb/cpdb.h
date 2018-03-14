@@ -15,9 +15,9 @@
 #include "v3.h"
 
 #define COMMIT_CPDB COMMITSHA1
-#define HELIX 0
-#define STRAND 1
-#define COIL 2
+#define HELIX 1
+#define STRAND 2
+#define COIL 0
 
 typedef struct pdb pdb;
 typedef struct chain chain;

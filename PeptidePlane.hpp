@@ -17,8 +17,10 @@ PeptidePlane NewPeptidePlane(residue *r1, residue *r2, residue *r3){
     atom *O1 = getAtom(r1, (char *)"O");
     atom *CA2  = getAtom(r2, (char *)"CA");
 
-    if(CA1 == NULL || O1 == NULL || CA2 == NULL)
+    if(CA1 == NULL || O1 == NULL || CA2 == NULL){
+        std::cerr<<"Failed to get all the atoms for residue "<<r1->id<<std::endl;
         return newPP;
+    }
 
     v3 ca1 = CA1->coor;
     v3 o1 = O1->coor;
@@ -56,7 +58,7 @@ void Transition(PeptidePlane *pp, char *type1, char *type2) {
     }
 }
 
-void Flip(PeptidePlane *pp) {
+void Flip(PeptidePlane *&pp) {
     pp->Side = pp->Side * -1;
     pp->Normal = pp->Normal * -1;
     pp->Flipped = !pp->Flipped;
