@@ -1,6 +1,6 @@
 
-const int splineSteps = 32/2;
-const int profileDetail = 16/2;
+const int splineSteps = 32/4;
+const int profileDetail = 16/4;
 
 const float ribbonWidth = 2.0f;
 const float ribbonHeight = 0.125f;
@@ -24,4 +24,5 @@ struct Mesh
     std::vector<int> triangles;
 };
 
-Mesh createChainMesh(chain *C);
+Mesh createChainMesh(const chain &C);
+// Mesh createChainMesh(chain *C);

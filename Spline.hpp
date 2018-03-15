@@ -7,12 +7,14 @@ static inline float RoundPlaces(float a, int p){
     float s = powersOfTen[p];
     return roundf(a*s) / s;
 }
-v3 RoundPlaces(v3 v, int p){
-    return v3(RoundPlaces(v.x, p), RoundPlaces(v.y, p), RoundPlaces(v.z, p));
+void RoundPlaces(v3 &v, int p){
+    v.x = RoundPlaces(v.x, p);
+    v.y = RoundPlaces(v.y, p);
+    v.z = RoundPlaces(v.z, p);
 }
 
 
-v3 *spline(v3 vec1, v3 vec2, v3 vec3, v3 vec4, int n) {
+void spline(v3 *&result, const v3 &vec1, const v3 &vec2, const v3 &vec3, const v3 &vec4, int n) {
     float n1 = (float)(n);
     float n2 = (n1 * n1);
     float n3 = (n1 * n1 * n1);
@@ -37,9 +39,8 @@ v3 *spline(v3 vec1, v3 vec2, v3 vec3, v3 vec4, int n) {
 
     QSMatrix<float> m = s * b * g;
 
-    v3 *result = new v3[n+1];
     v3 v = v3(m(3,0) / m(3,3), m(3,1) / m(3,3), m(3,2) / m(3,3));
-    v = RoundPlaces(v,10);
+    RoundPlaces(v,10);
     result[0] = v;
 
     for(int k=0;k<n;k++){
@@ -56,18 +57,18 @@ v3 *spline(v3 vec1, v3 vec2, v3 vec3, v3 vec4, int n) {
         m(1,2) = m(1,2) + m(0,2);
         m(1,3) = m(1,3) + m(0,3);
         v = v3(m(3,0) / m(3,3), m(3,1) / m(3,3), m(3,2) / m(3,3));
-        v = RoundPlaces(v,10);
+        RoundPlaces(v,10);
         result[k+1] =  v;
     }
-    return result;
 }
 
-v3 *splineForPlanes(PeptidePlane *p1,PeptidePlane * p2,PeptidePlane * p3,PeptidePlane * p4, int n, float u, float v) {
-    v3 g1 = p1->Position + p1->Side*u + p1->Normal * v;
-    v3 g2 = p2->Position + p2->Side*u + p2->Normal * v;
-    v3 g3 = p3->Position + p3->Side*u + p3->Normal * v;
-    v3 g4 = p4->Position + p4->Side*u + p4->Normal * v;
-    return spline(g1, g2, g3, g4, n);
+void splineForPlanes(v3 *&result, const PeptidePlane &p1, const PeptidePlane &p2, 
+                    const PeptidePlane &p3,const PeptidePlane &p4, int n, float u, float v) {
+    v3 g1 = p1.Position + p1.Side*u + p1.Normal * v;
+    v3 g2 = p2.Position + p2.Side*u + p2.Normal * v;
+    v3 g3 = p3.Position + p3.Side*u + p3.Normal * v;
+    v3 g4 = p4.Position + p4.Side*u + p4.Normal * v;
+    spline(result, g1, g2, g3, g4, n);
 }
 
 float Linear(float t) {

@@ -9,11 +9,11 @@
 #include <stdio.h>
 #include "cpdb.h"
 
-atom* getAtom (residue *resA, char *atomType) {
+atom* getAtom (const residue &resA, const char *atomType) {
 	atom *atomA;
 	int i = 0;
-	for (i=0; i<resA->size; i++) {
-		atomA = &resA->atoms[i];
+	for (i=0; i<resA.size; i++) {
+		atomA = &resA.atoms[i];
 		if ( ! strncmp(atomA->type, atomType, 5) )
 			return atomA;
 	}

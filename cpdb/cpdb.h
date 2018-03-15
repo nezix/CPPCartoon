@@ -43,7 +43,8 @@ void appendChaintoPdb (pdb *P, chain newChain);
 void appendResiduetoChain (chain *C, residue newResidue);
 void appendAtomtoResidue (residue *R, atom newAtom);
 
-atom* getAtom (residue *resA, char *atomType);
+atom* getAtom (const residue &resA, const char *atomType);
+// atom* getAtom (residue *resA, char *atomType);
 float distanceAtom (atom *A, atom*B);
 //char isInteract (residue *A, residue *B, float limitDistance, int limitChainDistance);
 //int intraInteractionCount (chain *C, float distanceLimit, int limitChainDistance);
