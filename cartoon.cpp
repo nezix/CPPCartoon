@@ -268,13 +268,15 @@ void createSegmentMesh(Mesh &mesh, int curi, int n,
     // if type1 != STRAND && type2 == STRAND {
     //  easeFunc = &ease.InOutSquare
     // }
-    if (curi == 0) {
-        ellipseProfile(profile1, profileDetail, 0.0f, 0.0f);
-        easeFunc = &OutCirc;
-    } else if (curi == n-1) {
-        ellipseProfile(profile2, profileDetail, 0.0f, 0.0f);
-        easeFunc = &InCirc;
-    }
+
+    
+    // if (curi == 0) {
+    //     ellipseProfile(profile1, profileDetail, 0.0f, 0.0f);
+    //     easeFunc = &OutCirc;
+    // } else if (curi == n-1) {
+    //     ellipseProfile(profile2, profileDetail, 0.0f, 0.0f);
+    //     easeFunc = &InCirc;
+    // }
 
     v3 **splines1 = new v3*[lenProf1];
     v3 **splines2 = new v3*[lenProf2];

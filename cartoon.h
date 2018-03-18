@@ -25,4 +25,3 @@ struct Mesh
 };
 
 Mesh createChainMesh(const chain &C);
-// Mesh createChainMesh(chain *C);

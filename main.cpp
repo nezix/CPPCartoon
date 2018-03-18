@@ -3,8 +3,6 @@
 #include <vector>
 
 #include "cpdb/cpdb.h"
-
-
 #include "cartoon.h"
 
 #include <chrono>
