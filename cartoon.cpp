@@ -215,28 +215,91 @@ void segmentColors(const PeptidePlane &pp, v3 &c1, v3 &c2) {
     }
 }
 
-void triangulateQuad(vector<int> &triangles, vector<v3> &vertices, vector<v3> &colors,
-                     v3 &p1, v3 &p2, v3 &p3, v3 &p4, v3 &c1, v3 &c2, v3 &c3, v3 &c4){
+// void triangulateQuad(Mesh &mesh,
+//                         v3 &p1, v3 &p2, v3 &p3, v3 &p4, v3 &c1, v3 &c2, v3 &c3, v3 &c4){
     
-    vertices.push_back(p1);
-    int idp1 = vertices.size()-1;
-    vertices.push_back(p2);
-    vertices.push_back(p3);
-    vertices.push_back(p4);
+//     mesh.vertices.push_back(p1);
+//     int idp1 = vertices.size()-1;
+//     mesh.vertices.push_back(p2);
+//     mesh.vertices.push_back(p3);
+//     mesh.vertices.push_back(p4);
 
-    colors.push_back(c1);
-    colors.push_back(c2);
-    colors.push_back(c3);
-    colors.push_back(c4);
+//     mesh.colors.push_back(c1);
+//     mesh.colors.push_back(c2);
+//     mesh.colors.push_back(c3);
+//     mesh.colors.push_back(c4);
+
+//     //Add 2 triangles
+//     mesh.triangles.push_back(idp1);
+//     mesh.triangles.push_back(idp1+1);
+//     mesh.triangles.push_back(idp1+2);
+
+//     mesh.triangles.push_back(idp1);
+//     mesh.triangles.push_back(idp1+2);
+//     mesh.triangles.push_back(idp1+3);
+    
+// }
+void triangulateQuad(Mesh &mesh,
+                        v3 &p1, v3 &p2, v3 &p3, v3 &p4, v3 &c1, v3 &c2, v3 &c3, v3 &c4){
+    
+    int res1 = 0;
+    int res2 = 0;
+    int res3 = 0;
+    int res4 = 0;
+
+    int idp1 = res1;
+    int idp2 = res2;
+    int idp3 = res3;
+    int idp4 = res4;
+
+    if(mesh.verticesDict.find(p1) != mesh.verticesDict.end()){
+        idp1 = mesh.verticesDict.at(p1);
+    }
+    else{
+        mesh.vertices.push_back(p1);
+        idp1 = mesh.vertices.size()-1;
+        mesh.colors.push_back(c1);
+        mesh.verticesDict.insert(pair<v3, int>(p1, idp1));
+    }
+
+    if(mesh.verticesDict.find(p2) != mesh.verticesDict.end()){
+        idp2 = mesh.verticesDict.at(p2);
+    }
+    else{
+        mesh.vertices.push_back(p2);
+        idp2 = mesh.vertices.size()-1;
+        mesh.colors.push_back(c2);
+        mesh.verticesDict.insert(pair<v3, int>(p2, idp2));
+    }
+
+    if(mesh.verticesDict.find(p3) != mesh.verticesDict.end()){
+        idp3 = mesh.verticesDict.at(p3);
+    }
+    else{
+        mesh.vertices.push_back(p3);
+        idp3 = mesh.vertices.size()-1;
+        mesh.colors.push_back(c3);
+        mesh.verticesDict.insert(pair<v3, int>(p3, idp3));
+    }
+
+    if(mesh.verticesDict.find(p4) != mesh.verticesDict.end()){
+        idp4 = mesh.verticesDict.at(p4);
+    }
+    else{
+        mesh.vertices.push_back(p4);
+        idp4 = mesh.vertices.size()-1;
+        mesh.colors.push_back(c4);
+        mesh.verticesDict.insert(pair<v3, int>(p4, idp4));
+    }
 
     //Add 2 triangles
-    triangles.push_back(idp1);
-    triangles.push_back(idp1+1);
-    triangles.push_back(idp1+2);
+    mesh.triangles.push_back(idp1);
+    mesh.triangles.push_back(idp2);
+    mesh.triangles.push_back(idp3);
 
-    triangles.push_back(idp1);
-    triangles.push_back(idp1+2);
-    triangles.push_back(idp1+3);
+    mesh.triangles.push_back(idp1);
+    mesh.triangles.push_back(idp3);
+    mesh.triangles.push_back(idp4);
     
 }
 
@@ -301,7 +364,7 @@ void createSegmentMesh(Mesh &mesh, int curi, int n,
             v3 p10 = splines1[profileDetail/4][i];
             v3 p11 = splines1[2*profileDetail/4][i];
             v3 p01 = splines1[3*profileDetail/4][i];
-            triangulateQuad(mesh.triangles, mesh.vertices, mesh.colors, p00, p01, p11, p10, c1, c1, c1, c1);
+            triangulateQuad(mesh, p00, p01, p11, p10, c1, c1, c1, c1);
         }
         for(int j = 0; j < profileDetail ; j++){
         // for(int j = 0; j < profileDetail && j < lenProf1 && j < lenProf2; j++){
@@ -321,7 +384,7 @@ void createSegmentMesh(Mesh &mesh, int curi, int n,
             v3 c01 = lerp(c1, c2, t1);
             v3 c10 = lerp(c1, c2, t0);
             v3 c11 = lerp(c1, c2, t1);
-            triangulateQuad(mesh.triangles, mesh.vertices, mesh.colors, p10, p11, p01, p00, c10, c11, c01, c00);
+            triangulateQuad(mesh, p10, p11, p01, p00, c10, c11, c01, c00);
         }
     }
     // mesh.triangles = triangles;
