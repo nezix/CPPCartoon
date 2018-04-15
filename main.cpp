@@ -45,26 +45,6 @@ void writeToObj(string fileName, vector<Mesh> &meshes){
 
     fclose(fich);
 
-
-
-    // ofstream myfile;
-    // cerr << "Writting to "<<fileName<<endl;
-    // myfile.open (fileName);
-
-    // for(int i=0;i<meshes.size();i++){
-    //     for(int j=0;j<meshes[i].vertices.size();j++){
-    //         myfile << "v "<<meshes[i].vertices[j].x<<" "<<meshes[i].vertices[j].y<<" "<<meshes[i].vertices[j].z<<endl;
-    //     }
-    // }
-    // int cpt=1;
-    // for(int i=0;i<meshes.size();i++){
-    //     for(int j=0;j<meshes[i].triangles.size();j+=3){
-    //         myfile << "f "<<cpt+meshes[i].triangles[j]<<" "<<cpt+meshes[i].triangles[j+1]<<" "<<cpt+meshes[i].triangles[j+2]<<endl;
-    //     }
-    //     cpt+=meshes[i].vertices.size();
-    // }
-
-    // myfile.close();
     cerr << "Wrote "<<meshes.size()<<" meshes to "<<fileName<<endl;
 }
 
@@ -82,18 +62,17 @@ int main(int argc, char const *argv[]) {
 
     auto start = std::chrono::high_resolution_clock::now();
     
-    chain C;
     // vector<Mesh> meshes;
     vector<Mesh> meshes(P->size);
     #pragma omp parallel for num_threads(P->size)
         for (int chainId = 0; chainId < P->size; chainId++) {
-            C = P->chains[chainId];
+            chain C = P->chains[chainId];
 
             Mesh m = createChainMesh(C);
             // meshes.push_back(m);
             meshes[omp_get_thread_num()] = m;
         }
-    
+
     auto stop = std::chrono::high_resolution_clock::now();
 
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( stop - start ).count();
