@@ -5,6 +5,8 @@
 #include "cpdb/cpdb.h"
 #include "cartoon.h"
 
+#include <omp.h>
+
 #include <chrono>
 #include <iomanip> 
 
@@ -73,26 +75,25 @@ int main(int argc, char const *argv[]) {
         exit(-1);
     }
 
-
     pdb *P;
     P = initPDB();
 
     parsePDB((char *)argv[1], P, (char *)"");
 
     auto start = std::chrono::high_resolution_clock::now();
-    vector<Mesh> meshes;
+    
     chain C;
+    // vector<Mesh> meshes;
+    vector<Mesh> meshes(P->size);
+    #pragma omp parallel for num_threads(P->size)
+        for (int chainId = 0; chainId < P->size; chainId++) {
+            C = P->chains[chainId];
 
-    for (int chainId = 0; chainId < P->size; chainId++) {
-        C = P->chains[chainId];
-        // for(int r=0;r<C->size;r++){
-        //     if(C->residues[r].ss == STRAND)
-        //         // cerr << "'"<<(int)C->residues[r].ss<<"'"<<endl;
-        //         cerr << "'"<<C->id<<" / "<<C->residues[r].id<<endl;
-        // }
-        Mesh m = createChainMesh(C);
-        meshes.push_back(m);
-    }
+            Mesh m = createChainMesh(C);
+            // meshes.push_back(m);
+            meshes[omp_get_thread_num()] = m;
+        }
+    
     auto stop = std::chrono::high_resolution_clock::now();
 
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( stop - start ).count();
