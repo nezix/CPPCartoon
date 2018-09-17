@@ -28,9 +28,11 @@ void writeToObj(string fileName, vector<Mesh> &meshes){
 
     for(int i=0;i<meshes.size();i++){
         vector<v3> verts = meshes[i].vertices;
+        vector<v3> colors = meshes[i].colors;
+
         for(int j=0;j<verts.size();j++){
             // myfile << "v "<<meshes[i].vertices[j].x<<" "<<meshes[i].vertices[j].y<<" "<<meshes[i].vertices[j].z<<endl;
-            fprintf(fich, "v %.3f %.3f %.3f\n",verts[j].x,verts[j].y,verts[j].z);
+            fprintf(fich, "v %.3f %.3f %.3f %.3f %.3f %.3f\n",verts[j].x,verts[j].y,verts[j].z, colors[j].x, colors[j].y, colors[j].z);
         }
     }
     int cpt=1;
