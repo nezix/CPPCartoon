@@ -1,7 +1,7 @@
 #include <map>
 
-const int splineSteps = 32/4;
-const int profileDetail = 16/4;
+const int splineSteps = 32/2;
+const int profileDetail = 16/2;
 
 const float ribbonWidth = 2.0f;
 const float ribbonHeight = 0.125f;
@@ -9,7 +9,7 @@ const float ribbonOffset = 1.5f;
 const float arrowHeadWidth = 3.0f;
 const float arrowWidth = 2.0f;
 const float arrowHeight = 0.5f;
-const float tubeSize = 0.75f;
+const float tubeSize = 0.25f;
 
 
 #ifndef M_PI
