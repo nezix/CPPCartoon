@@ -62,8 +62,8 @@ void spline(v3 *&result, const v3 &vec1, const v3 &vec2, const v3 &vec3, const v
     }
 }
 
-void splineForPlanes(v3 *&result, const PeptidePlane &p1, const PeptidePlane &p2, 
-                    const PeptidePlane &p3,const PeptidePlane &p4, int n, float u, float v) {
+void splineForPlanes(v3 *&result, const PeptidePlane2 &p1, const PeptidePlane2 &p2, 
+                    const PeptidePlane2 &p3,const PeptidePlane2 &p4, int n, float u, float v) {
     v3 g1 = p1.Position + p1.Side*u + p1.Normal * v;
     v3 g2 = p2.Position + p2.Side*u + p2.Normal * v;
     v3 g3 = p3.Position + p3.Side*u + p3.Normal * v;

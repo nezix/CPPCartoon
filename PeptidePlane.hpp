@@ -1,8 +1,16 @@
 
-struct PeptidePlane {
-    const residue *Residue1;
-    const residue *Residue2;
-    const residue *Residue3;
+struct simpleRes
+{
+    int id;
+    char type;
+    v3 posCA;
+    v3 posO;
+};
+
+struct PeptidePlane2 {
+    simpleRes Residue1;
+    simpleRes Residue2;
+    simpleRes Residue3;
     v3 Position;
     v3 Normal;
     v3 Forward;
@@ -10,44 +18,13 @@ struct PeptidePlane {
     bool Flipped;
 };
 
-PeptidePlane NewPeptidePlane(const residue &r1, const residue &r2, const residue &r3){
-    PeptidePlane newPP;
 
-    atom *CA1 = getAtom(r1, (char *)"CA");
-    atom *O1 = getAtom(r1, (char *)"O");
-    atom *CA2  = getAtom(r2, (char *)"CA");
 
-    if(CA1 == NULL || O1 == NULL || CA2 == NULL){
-        std::cerr<<"Failed to get all the atoms for residue "<<r1.id<<std::endl;
-        return newPP;
-    }
+void Transition(const PeptidePlane2 &pp, char &type1, char &type2) {
 
-    v3 ca1 = CA1->coor;
-    v3 o1 = O1->coor;
-    v3 ca2 = CA2->coor;
-
-    v3 a = (ca2 - ca1).normalized();
-    v3 b = (o1 - ca1).normalized();
-    v3 c = v3::crossProduct(a, b).normalized();
-    v3 d = v3::crossProduct(c, a).normalized();
-    v3 p = (ca1 + ca2)/ 2.0f;
-    newPP.Residue1 = &r1;
-    newPP.Residue2 = &r2;
-    newPP.Residue3 = &r3;
-    newPP.Position = p;
-    newPP.Normal = c;
-    newPP.Forward = a;
-    newPP.Side = d;
-    newPP.Flipped = false;
-
-    return newPP;
-}
-
-void Transition(const PeptidePlane &pp, char &type1, char &type2) {
-
-    char t1 = pp.Residue1->ss;
-    char t2 = pp.Residue2->ss;
-    char t3 = pp.Residue3->ss;
+    char t1 = pp.Residue1.type;
+    char t2 = pp.Residue2.type;
+    char t3 = pp.Residue3.type;
     type1 = t2;
     type2 = t2;
     if (t2 > t1 && t2 == t3){
@@ -58,8 +35,55 @@ void Transition(const PeptidePlane &pp, char &type1, char &type2) {
     }
 }
 
-void Flip(PeptidePlane &pp) {
+void Flip(PeptidePlane2 &pp) {
     pp.Side = pp.Side * -1;
     pp.Normal = pp.Normal * -1;
     pp.Flipped = !pp.Flipped;
 }
+
+
+PeptidePlane2 NewPeptidePlane(int chainId, v3 positions[], int ids[], char types[], int idResInPos[], int id, int id1, int id2){
+    PeptidePlane2 newPP;
+
+    //CA of residue id
+    v3 CA1 = positions[(idResInPos[chainId] + id)*2];
+    //O of residue id
+    v3 O1 = positions[(idResInPos[chainId] + id)*2+1];
+    //CA of residue id1
+    v3 CA2  = positions[(idResInPos[chainId] + id1)*2];
+
+    simpleRes r1;
+    r1.id = ids[idResInPos[chainId] + id];
+    r1.type = types[idResInPos[chainId] + id];
+    r1.posCA = CA1;
+    r1.posO = O1;
+
+    simpleRes r2;
+    r2.id = ids[idResInPos[chainId] + id1];
+    r2.type = types[idResInPos[chainId] + id1];
+    r2.posCA = CA2;
+    r2.posO = positions[(idResInPos[chainId] + id1)*2+1];
+
+    simpleRes r3;
+    r3.id = ids[idResInPos[chainId] + id2];
+    r3.type = types[idResInPos[chainId] + id2];
+    r3.posCA = positions[(idResInPos[chainId] + id1)*2];
+    r3.posO = positions[(idResInPos[chainId] + id2)*2+1];
+
+    v3 a = (CA2 - CA1).normalized();
+    v3 b = (O1 - CA1).normalized();
+    v3 c = v3::crossProduct(a, b).normalized();
+    v3 d = v3::crossProduct(c, a).normalized();
+    v3 p = (CA1 + CA2)/ 2.0f;
+    newPP.Residue1 = r1;
+    newPP.Residue2 = r2;
+    newPP.Residue3 = r3;
+    newPP.Position = p;
+    newPP.Normal = c;
+    newPP.Forward = a;
+    newPP.Side = d;
+    newPP.Flipped = false;
+
+    return newPP;
+}
+

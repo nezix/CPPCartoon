@@ -34,3 +34,4 @@ struct Mesh
 };
 
 Mesh createChainMesh(const chain &C);
+Mesh createChainMesh2(int chainId, v3 *positions, int *ids, char *types, int nbChain, int *residuesPerChain, int *idResInPos);

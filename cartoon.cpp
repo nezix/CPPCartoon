@@ -127,8 +127,8 @@ void translateProfile(vector<v3> &p, float dx, float dy, int lenP) {
     }
 }
 
-void segmentProfiles(const PeptidePlane &pp1, const PeptidePlane &pp2, int n, vector<v3> &p1, vector<v3> &p2) {
-    char type0 = pp1.Residue1->ss;
+void segmentProfiles(const PeptidePlane2 &pp1, const PeptidePlane2 &pp2, int n, vector<v3> &p1, vector<v3> &p2) {
+    char type0 = pp1.Residue1.type;
     char type1, type2;
     Transition(pp1, type1, type2);
 
@@ -184,16 +184,8 @@ void segmentProfiles(const PeptidePlane &pp1, const PeptidePlane &pp2, int n, ve
     }
 }
 
-void segmentColors(const PeptidePlane &pp, v3 &c1, v3 &c2) {
-    // const minTemp = 10
-    // const maxTemp = 50
-    // f1 := pp.Residue2.Atoms["CA"].TempFactor
-    // f2 := pp.Residue3.Atoms["CA"].TempFactor
-    // t1 := fauxgl.Clamp((f1-minTemp)/(maxTemp-minTemp), 0, 1)
-    // t2 := fauxgl.Clamp((f2-minTemp)/(maxTemp-minTemp), 0, 1)
-    // c1 = fauxgl.MakeColor(Viridis.Color(t1))
-    // c2 = fauxgl.MakeColor(Viridis.Color(t2))
-    // return
+void segmentColors(const PeptidePlane2 &pp, v3 &c1, v3 &c2) {
+
     char type1, type2;
     Transition(pp, type1, type2);
     switch (type1) {
@@ -223,30 +215,7 @@ void segmentColors(const PeptidePlane &pp, v3 &c1, v3 &c2) {
     }
 }
 
-// void triangulateQuad(Mesh &mesh,
-//                         v3 &p1, v3 &p2, v3 &p3, v3 &p4, v3 &c1, v3 &c2, v3 &c3, v3 &c4){
 
-//     mesh.vertices.push_back(p1);
-//     int idp1 = vertices.size()-1;
-//     mesh.vertices.push_back(p2);
-//     mesh.vertices.push_back(p3);
-//     mesh.vertices.push_back(p4);
-
-//     mesh.colors.push_back(c1);
-//     mesh.colors.push_back(c2);
-//     mesh.colors.push_back(c3);
-//     mesh.colors.push_back(c4);
-
-//     //Add 2 triangles
-//     mesh.triangles.push_back(idp1);
-//     mesh.triangles.push_back(idp1+1);
-//     mesh.triangles.push_back(idp1+2);
-
-//     mesh.triangles.push_back(idp1);
-//     mesh.triangles.push_back(idp1+2);
-//     mesh.triangles.push_back(idp1+3);
-
-// }
 void triangulateQuad(Mesh &mesh,
                      v3 &p1, v3 &p2, v3 &p3, v3 &p4, v3 &c1, v3 &c2, v3 &c3, v3 &c4) {
 
@@ -333,15 +302,14 @@ void triangulateQuad(Mesh &mesh,
 }
 
 void createSegmentMesh(Mesh &mesh, int curi, int n,
-                       const PeptidePlane &pp1, const PeptidePlane &pp2, const PeptidePlane &pp3,
-                       const PeptidePlane &pp4) {
+                       const PeptidePlane2 &pp1, const PeptidePlane2 &pp2, const PeptidePlane2 &pp3,
+                       const PeptidePlane2 &pp4) {
 
-    char type0 = pp2.Residue1->ss;
+    char type0 = pp2.Residue1.type;
     char type1, type2;
     Transition(pp2, type1, type2);
     v3 c1, c2;
     segmentColors(pp2, c1, c2);
-
     vector<v3> profile1(n);
     vector<v3> profile2(n);
 
@@ -369,6 +337,8 @@ void createSegmentMesh(Mesh &mesh, int curi, int n,
     //     ellipseProfile(profile2, profileDetail, 0.0f, 0.0f);
     //     easeFunc = &InCirc;
     // }
+
+
 
     v3 **splines1 = new v3*[lenProf1];
     v3 **splines2 = new v3*[lenProf2];
@@ -438,31 +408,35 @@ bool diffPP(int id1, int id2) {
     return false;
 }
 
-bool discontinuity(PeptidePlane pp1, PeptidePlane pp2, PeptidePlane pp3, PeptidePlane pp4) {
+bool discontinuity(PeptidePlane2 pp1, PeptidePlane2 pp2, PeptidePlane2 pp3, PeptidePlane2 pp4) {
     int diff = 1;
-    if (diffPP(pp1.Residue1->id, pp1.Residue2->id) || diffPP(pp1.Residue2->id, pp1.Residue3->id)) {
+    if (diffPP(pp1.Residue1.id, pp1.Residue2.id) || diffPP(pp1.Residue2.id, pp1.Residue3.id)) {
         return true;
     }
-    if (diffPP(pp2.Residue1->id, pp2.Residue2->id) || diffPP(pp2.Residue2->id, pp2.Residue3->id)) {
+    if (diffPP(pp2.Residue1.id, pp2.Residue2.id) || diffPP(pp2.Residue2.id, pp2.Residue3.id)) {
         return true;
     }
-    if (diffPP(pp3.Residue1->id, pp3.Residue2->id) || diffPP(pp3.Residue2->id, pp3.Residue3->id)) {
+    if (diffPP(pp3.Residue1.id, pp3.Residue2.id) || diffPP(pp3.Residue2.id, pp3.Residue3.id)) {
         return true;
     }
-    if (diffPP(pp4.Residue1->id, pp4.Residue2->id) || diffPP(pp4.Residue2->id, pp4.Residue3->id)) {
+    if (diffPP(pp4.Residue1.id, pp4.Residue2.id) || diffPP(pp4.Residue2.id, pp4.Residue3.id)) {
         return true;
     }
 
     return false;
 }
 
-Mesh createChainMesh(const chain &C) {
+
+Mesh createChainMesh2(int chainId, v3 *positions, int *ids, char *types, int nbChain, int *residuesPerChain,
+                      int *idResInPos) {
 
     Mesh mesh;
-    PeptidePlane *planes = new PeptidePlane[C.size + 1];
+    int Csize = residuesPerChain[chainId];
+
+    PeptidePlane2 *planes = new PeptidePlane2[Csize];
     v3 previous;
     int nbPlanes = 0;
-    for (int i = -1; i < C.size; i++) {
+    for (int i = -1; i < Csize; i++) {
 
         int id = i;
         int id1 = i + 1;
@@ -473,45 +447,41 @@ Mesh createChainMesh(const chain &C) {
             id1 = 0;
             id2 = i + 1;
         }
-        else if (i == C.size - 2) {
+        else if (i == Csize - 2) {
             id = i;
             id1 = i + 1;
             id2 = i + 1;
         }
-        else if (i == C.size - 1) {
+        else if (i == Csize - 1) {
             id = i - 1;
             id1 = i;
             id2 = i;
         }
-        const residue &r1 = C.residues[id];
-        const residue &r2 = C.residues[id1];
-        const residue &r3 = C.residues[id2];
 
-        PeptidePlane plane = NewPeptidePlane(r1, r2, r3);
-        if (plane.Residue1 == NULL) {
-            // TODO: better handling missing required atoms
-            // planes[nbPlanes++] = plane;
-            continue;
-        }
+        PeptidePlane2 plane = NewPeptidePlane(chainId, positions, ids, types, idResInPos, id, id1, id2);
+
+        // if (plane.Residue1 == NULL) {
+        //     // TODO: better handling missing required atoms
+        //     // planes[nbPlanes++] = plane;
+        //     continue;
+        // }
         //Make sure to start at the first CA position
         if (i <= 0) {
-
-            atom *CA = getAtom(r1, (char *)"CA");
-            plane.Position = CA->coor;
+            plane.Position = plane.Residue1.posCA;
         }
         //Make sure to end at the last CA position
-        if (i >= C.size - 2) {
-            atom *CA = getAtom(r3, (char *)"CA");
-            plane.Position = CA->coor;
+        if (i >= Csize - 2) {
+            //CA
+            plane.Position = plane.Residue3.posCA;
         }
 
-        if (plane.Residue1 != NULL) {
+        // if (plane.Residue1 != NULL) {
             // TODO: better handling missing required atoms
             planes[nbPlanes++] = plane;
-        }
+        // }
     }
     for (int i = 0; i < nbPlanes; i++) {
-        PeptidePlane &p = planes[i];
+        PeptidePlane2 &p = planes[i];
         if (i > 0 && p.Side.dotProduct(previous) < 0.0f ) {
             Flip(p);
         }
@@ -526,20 +496,25 @@ Mesh createChainMesh(const chain &C) {
     mesh.colors.reserve(nbVert);
     mesh.vertices.reserve(nbVert);
 
+
     for (int i = 0; i < n; i++) {
         // TODO: handle ends better
-        PeptidePlane &pp1 = planes[i];
-        PeptidePlane &pp2 = planes[i + 1];
-        PeptidePlane &pp3 = planes[i + 2];
-        PeptidePlane &pp4 = planes[i + 3];
+        PeptidePlane2 &pp1 = planes[i];
+        PeptidePlane2 &pp2 = planes[i + 1];
+        PeptidePlane2 &pp3 = planes[i + 2];
+        PeptidePlane2 &pp4 = planes[i + 3];
 
         if (discontinuity(pp1, pp2, pp3, pp4)) {
             continue;
         }
+        cout << "i = "<<i<<endl;
 
         createSegmentMesh(mesh, i, n, pp1, pp2, pp3, pp4);
     }
+
     delete(planes);
     return mesh;
+
+
 }
 
