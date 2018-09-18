@@ -1,7 +1,7 @@
 
 struct simpleRes
 {
-    int id;
+    int id = -1;
     char type;
     v3 posCA;
     v3 posO;
@@ -45,6 +45,10 @@ void Flip(PeptidePlane2 &pp) {
 PeptidePlane2 NewPeptidePlane(int chainId, v3 positions[], int ids[], char types[], int idResInPos[], int id, int id1, int id2){
     PeptidePlane2 newPP;
 
+    if(id < 0 || id1 < 0 || id2 < 0){
+        std::cout << "Something went wrong"<<std::endl;
+        return newPP;
+    }
     //CA of residue id
     v3 CA1 = positions[(idResInPos[chainId] + id)*2];
     //O of residue id

@@ -64,7 +64,9 @@ vector<Mesh> createMeshes(v3 *positions, int *ids, char *types, int nbChain, int
         idResInPos[i] = id;
         id += residuesPerChain[i];
     }
-    vector<Mesh> meshes(nbChain);
+    vector<Mesh> meshes;
+    meshes.resize(nbChain);
+
     // #pragma omp parallel for num_threads(nbChain)
     for (int chainId = 0; chainId < nbChain; chainId++) {
         Mesh m = createChainMesh2(chainId, positions, ids, types, nbChain, residuesPerChain, idResInPos);
@@ -90,7 +92,6 @@ int main(int argc, char const *argv[]) {
     vector<int> is;
     vector<char> tps;
     vector<int> resPC;
-
 
     for (int chainId = 0; chainId < P->size; chainId++) {
         chain C = P->chains[chainId];

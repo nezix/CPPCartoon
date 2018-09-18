@@ -339,7 +339,6 @@ void createSegmentMesh(Mesh &mesh, int curi, int n,
     // }
 
 
-
     v3 **splines1 = new v3*[lenProf1];
     v3 **splines2 = new v3*[lenProf2];
 
@@ -426,14 +425,13 @@ bool discontinuity(PeptidePlane2 pp1, PeptidePlane2 pp2, PeptidePlane2 pp3, Pept
     return false;
 }
 
-
 Mesh createChainMesh2(int chainId, v3 *positions, int *ids, char *types, int nbChain, int *residuesPerChain,
                       int *idResInPos) {
 
     Mesh mesh;
     int Csize = residuesPerChain[chainId];
 
-    PeptidePlane2 *planes = new PeptidePlane2[Csize];
+    PeptidePlane2 *planes = new PeptidePlane2[Csize + 1];
     v3 previous;
     int nbPlanes = 0;
     for (int i = -1; i < Csize; i++) {
@@ -460,11 +458,12 @@ Mesh createChainMesh2(int chainId, v3 *positions, int *ids, char *types, int nbC
 
         PeptidePlane2 plane = NewPeptidePlane(chainId, positions, ids, types, idResInPos, id, id1, id2);
 
+        if (plane.Residue1.id == -1) {
         // if (plane.Residue1 == NULL) {
         //     // TODO: better handling missing required atoms
         //     // planes[nbPlanes++] = plane;
-        //     continue;
-        // }
+            continue;
+        }
         //Make sure to start at the first CA position
         if (i <= 0) {
             plane.Position = plane.Residue1.posCA;
@@ -475,10 +474,10 @@ Mesh createChainMesh2(int chainId, v3 *positions, int *ids, char *types, int nbC
             plane.Position = plane.Residue3.posCA;
         }
 
-        // if (plane.Residue1 != NULL) {
+        if (plane.Residue1.id != -1) {
             // TODO: better handling missing required atoms
             planes[nbPlanes++] = plane;
-        // }
+        }
     }
     for (int i = 0; i < nbPlanes; i++) {
         PeptidePlane2 &p = planes[i];
@@ -488,10 +487,14 @@ Mesh createChainMesh2(int chainId, v3 *positions, int *ids, char *types, int nbC
         previous = p.Side;
     }
 
+    if(nbPlanes < 4){
+        return mesh;
+    }
     int n = nbPlanes - 3;
 
     int nbTri =  n * (splineSteps + 1) * profileDetail * 6 ;
     int nbVert = n * (splineSteps + 1) * profileDetail * 4 ;
+
     mesh.triangles.reserve(nbTri);
     mesh.colors.reserve(nbVert);
     mesh.vertices.reserve(nbVert);
@@ -507,11 +510,8 @@ Mesh createChainMesh2(int chainId, v3 *positions, int *ids, char *types, int nbC
         if (discontinuity(pp1, pp2, pp3, pp4)) {
             continue;
         }
-        cout << "i = "<<i<<endl;
-
         createSegmentMesh(mesh, i, n, pp1, pp2, pp3, pp4);
     }
-
     delete(planes);
     return mesh;
 
