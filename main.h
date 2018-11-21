@@ -31,5 +31,7 @@ struct SplineStruct
     float *interpheights;
 };
 
+// Mesh *computeCartoonMesh(int nbChain, int *nbResPerChain, float *CA_OPositions, int *ssTypePerRes);
+vector<Mesh> computeCartoonMesh(int nbChain, int *nbResPerChain, float *CA_OPositions, char *ssTypePerRes);
 
 

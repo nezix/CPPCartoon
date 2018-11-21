@@ -543,3 +543,102 @@ Mesh createChainMesh(const chain &C) {
     return mesh;
 }
 
+Mesh createChainMesh(int chainId, const int *nbResPerChain,
+                     const float *CA_OPositions, const char *ssTypePerRes) {
+
+    Mesh mesh;
+    int chainSize = nbResPerChain[chainId];
+    PeptidePlane *planes = new PeptidePlane[chainSize + 1];
+    v3 previous;
+    int nbPlanes = 0;
+    int startRes = 0;
+    for (int i = 0; i < chainId; i++){
+        startRes += nbResPerChain[i];
+    }
+    const char *SSRes = &ssTypePerRes[startRes];
+    const float *atomPos = &CA_OPositions[startRes * 6];
+
+    for (int i = -1; i < chainSize; i++) {
+
+        int id = i;
+        int id1 = i + 1;
+        int id2 = i + 2;
+
+        if (i == -1) {
+            id = 0;
+            id1 = 0;
+            id2 = i + 1;
+        }
+        else if (i == chainSize - 2) {
+            id = i;
+            id1 = i + 1;
+            id2 = i + 1;
+        }
+        else if (i == chainSize - 1) {
+            id = i - 1;
+            id1 = i;
+            id2 = i;
+        }
+
+        PeptidePlane plane = NewPeptidePlane(&atomPos[id * 6],
+                                             &atomPos[id * 6 + 3],
+                                             &atomPos[id1 * 6],
+                                             SSRes[id], SSRes[id1], SSRes[id2],
+                                             id, id1, id2);
+        if (plane.Residue1 == NULL) {
+            // TODO: better handling missing required atoms
+            // planes[nbPlanes++] = plane;
+            continue;
+        }
+        //Make sure to start at the first CA position
+        if (i <= 0) {
+            //CA of r1
+            plane.Position = v3(atomPos[0], atomPos[1], atomPos[2]);
+        }
+        //Make sure to end at the last CA position
+        if (i >= chainSize - 2) {
+            //CA of r3
+            plane.Position = v3(atomPos[id2 * 3 * 2 + 0], 
+                                atomPos[id2 * 3 * 2 + 1],
+                                atomPos[id2 * 3 * 2 + 2]);
+        }
+
+        if (plane.Residue1 != NULL) {
+            // TODO: better handling missing required atoms
+            planes[nbPlanes++] = plane;
+        }
+    }
+    for (int i = 0; i < nbPlanes; i++) {
+        PeptidePlane &p = planes[i];
+        if (i > 0 && p.Side.dotProduct(previous) < 0.0f ) {
+            Flip(p);
+        }
+        previous = p.Side;
+    }
+
+    int n = nbPlanes - 3;
+
+    int nbTri =  n * (splineSteps + 1) * profileDetail * 6 ;
+    int nbVert = n * (splineSteps + 1) * profileDetail * 4 ;
+    mesh.triangles.reserve(nbTri);
+    mesh.colors.reserve(nbVert);
+    mesh.vertices.reserve(nbVert);
+
+    for (int i = 0; i < n; i++) {
+        // TODO: handle ends better
+        PeptidePlane &pp1 = planes[i];
+        PeptidePlane &pp2 = planes[i + 1];
+        PeptidePlane &pp3 = planes[i + 2];
+        PeptidePlane &pp4 = planes[i + 3];
+
+        if (discontinuity(pp1, pp2, pp3, pp4)) {
+            continue;
+        }
+
+        createSegmentMesh(mesh, i, n, pp1, pp2, pp3, pp4);
+    }
+    delete(planes);
+    return mesh;
+
+}
+

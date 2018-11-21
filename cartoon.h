@@ -34,3 +34,4 @@ struct Mesh
 };
 
 Mesh createChainMesh(const chain &C);
+Mesh createChainMesh(int chainId, const int *nbResPerChain, const float *CA_OPositions, const char *ssTypePerRes);
