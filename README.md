@@ -12,9 +12,7 @@ Secondary structure type code : 0 = COIL / 1 = HELIX / 2 = STRAND
 
 - Example for the executable: ```./cppCartoon 1kx2.pdb output.obj```
 
-- Example for the library : ```cpp
-computeCartoonMesh(numberOfChains, (int *)numberOfResiduePerChain, (float *)CA_O_Positions, (char *)ssTypePerResidue);
-```
+- Example for the library : ```computeCartoonMesh(numberOfChains, (int *)numberOfResiduePerChain, (float *)CA_O_Positions, (char *)ssTypePerResidue);```
 
 -----------------------------------
 
