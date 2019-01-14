@@ -26,4 +26,11 @@ Secondary structure type code : `0 = COIL / 1 = HELIX / 2 = STRAND`
 
 ---------------------------------
 
+<img src="Images/1GRUExample.JPG" width="256" title="1GRU Example">
+<img src="Images/3EAMExample.JPG" width="256" title="3EAM Example">
+
+
+---------------------------------
+
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
