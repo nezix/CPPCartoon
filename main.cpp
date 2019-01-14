@@ -5,7 +5,11 @@
 #include "cpdb/cpdb.h"
 #include "cartoon.h"
 
+#define USEOMP 1
+
+#if USEOMP
 #include <omp.h>
+#endif
 
 #include <chrono>
 #include <iomanip>
@@ -13,11 +17,13 @@
 using namespace std;
 
 #define TIMEIT 1
-#define USEOMP 1
+
 
 /// Tool to create cartoon meshes for secondary structures of proteins
 /// Can be used as a library by calling computeCartoonMesh or as a standalone tool by calling the executable on a PDB file
 /// Secondary structure code : 0 = COIL / 1 = HELIX / 2 = STRAND
+
+/// Example: computeCartoonMesh(numberOfChains, (int *)numberOfResiduePerChain, (float *)CA_O_Positions, (char *)ssTypePerResidue);
 
 /// Utility function to write meshes to an OBJ file
 void writeToObj(string fileName, vector<Mesh> &meshes) {
