@@ -12,7 +12,7 @@
 atom* getAtom (const residue &resA, const char *atomType) {
 	atom *atomA;
 	int i = 0;
-	for (i=0; i<resA.size; i++) {
+	for (i = 0; i < resA.size; i++) {
 		atomA = &resA.atoms[i];
 		if ( ! strncmp(atomA->type, atomType, 5) )
 			return atomA;
@@ -21,11 +21,11 @@ atom* getAtom (const residue &resA, const char *atomType) {
 }
 
 float distanceAtom (atom *A, atom*B) {
-	float dx,dy,dz;
+	float dx, dy, dz;
 	dx = A->coor.x - B->coor.x;
 	dy = A->coor.y - B->coor.y;
 	dz = A->coor.z - B->coor.z;
-	return sqrtf(dx*dx + dy*dy + dz*dz);
+	return sqrtf(dx * dx + dy * dy + dz * dz);
 }
 
 /*
@@ -36,7 +36,7 @@ char isInteract (residue *A, residue *B, float limitDistance, int limitChainDist
 		I = & A->atoms[i];
 		for (int j=0; j<B->size; j++) {
 			J = & B->atoms[j];
-			if (distanceAtom(I,J) < limitDistance) 
+			if (distanceAtom(I,J) < limitDistance)
 				return 1;
 		}
 	}

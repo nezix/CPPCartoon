@@ -12,6 +12,14 @@
 
 using namespace std;
 
+#define TIMEIT 1
+#define USEOMP 1
+
+/// Tool to create cartoon meshes for secondary structures of proteins
+/// Can be used as a library by calling computeCartoonMesh or as a standalone tool by calling the executable on a PDB file
+/// Secondary structure code : 0 = COIL / 1 = HELIX / 2 = STRAND
+
+/// Utility function to write meshes to an OBJ file
 void writeToObj(string fileName, vector<Mesh> &meshes) {
 
     FILE *fich = NULL;
@@ -57,31 +65,42 @@ vector<Mesh> computeCartoonMesh(int nbChain, int *nbResPerChain, float *CA_OPosi
         return meshes;
     }
 
+#if USEOMP
     #pragma omp parallel for num_threads(nbChain)
     for (int chainId = 0; chainId < nbChain; chainId++) {
         Mesh m = createChainMesh(chainId, nbResPerChain, CA_OPositions, ssTypePerRes);
         meshes[omp_get_thread_num()] = m;
     }
+#else
+    for (int chainId = 0; chainId < nbChain; chainId++) {
+        Mesh m = createChainMesh(chainId, nbResPerChain, CA_OPositions, ssTypePerRes);
+        meshes[chainId] = m;
+    }
+#endif
 
-    // return &meshes[0];
     return meshes;
 }
 
+
 int main(int argc, char const *argv[]) {
 
-    if (argc < 2) {
-        std::cout << "Usage : " << argv[0] << " file.pdb " << endl;
+    if (argc != 3) {
+        std::cout << "Usage : " << argv[0] << " file.pdb output.obj" << endl;
         exit(-1);
     }
+
+    string outputPath = argv[2];
 
     pdb *P;
     P = initPDB();
 
     parsePDB((char *)argv[1], P, (char *)"");
 
+#if TIMEIT
     auto start = std::chrono::high_resolution_clock::now();
+#endif
 
-#if 0
+#if 0 //Previous implementation
     // vector<Mesh> meshes;
     vector<Mesh> meshes(P->size);
     #pragma omp parallel for num_threads(P->size)
@@ -93,11 +112,12 @@ int main(int argc, char const *argv[]) {
         meshes[omp_get_thread_num()] = m;
     }
 
-
 #else
+    //Get atom positions and call computeCartoonMesh
     vector<int> nbResPerChain(P->size);
     vector<float> CAOPos;
     vector<char> allSS;
+
     for (int chainId = 0; chainId < P->size; chainId++) {
         chain *C = &P->chains[chainId];
         nbResPerChain[chainId] = C->size;
@@ -106,6 +126,10 @@ int main(int argc, char const *argv[]) {
             atom *CA = getAtom(*R, (char *)"CA");
             atom *O = getAtom(*R, (char *)"O");
             char ss = R->ss;
+            if (CA == NULL || O == NULL) {
+                cerr << "CA or O not found in chain " << C->id << " residue " << R->type << "_" << R->id << endl;
+                exit(-1);
+            }
             CAOPos.push_back(CA->coor.x);
             CAOPos.push_back(CA->coor.y);
             CAOPos.push_back(CA->coor.z);
@@ -116,16 +140,19 @@ int main(int argc, char const *argv[]) {
         }
     }
 
-
+    cout << "Starting" << endl;
+    fflush(stdout);
     vector<Mesh> meshes = computeCartoonMesh(P->size, &nbResPerChain[0], &CAOPos[0], &allSS[0]);
-
-
 #endif
+
+#if TIMEIT
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( stop - start ).count();
+    cerr << duration << " ms" << endl;
+#endif
 
-    cerr << duration << endl;
-    writeToObj("output.obj", meshes);
+    //Write the meshes to an OBJ file
+    writeToObj(outputPath, meshes);
 
     return 0;
 }

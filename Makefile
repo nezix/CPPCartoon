@@ -23,5 +23,5 @@ cartoon.o: cartoon.cpp
 
 
 clean:
-	rm -f *.o cppCartoon
+	rm -f *.o cppCartoon cppCartoon.exe
 	rm -f cpdb/*.o
